@@ -91,7 +91,7 @@ public class Player_Jump : PlayerState
     public override void Enter()
     {
         player.animator.Play(player.JUMP_HASH);
-        player.rigid.AddForce(Vector2.up * player.jumpSpeed, ForceMode2D.Impulse);
+        //player.rigid.AddForce(Vector2.up * player.jumpSpeed, ForceMode2D.Impulse);
         player.isGrounded = false;
         player.isJumped = false;
     }

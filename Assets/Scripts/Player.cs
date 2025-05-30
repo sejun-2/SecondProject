@@ -8,7 +8,12 @@ public class Player : MonoBehaviour
     [SerializeField] private CinemachineVirtualCamera virtualCam;
 
     [SerializeField] public float moveSpeed; // 움직이는 스피드
-    [SerializeField] public float jumpSpeed;
+    //[SerializeField] public float jumpSpeed;
+
+    private Coroutine jumpChargeCoroutine;
+    private float jumpChargeTime;
+    private float minJumpForce = 5f;  // 최소 점프 힘
+    private float maxJumpForce = 20f; // 최대 점프 힘
 
     public StateMachine stateMachine;
 
@@ -46,7 +51,22 @@ public class Player : MonoBehaviour
     void Update()
     {
         inputX = Input.GetAxis("Horizontal");
-        isJumped = Input.GetKeyDown(KeyCode.Space);
+        //isJumped = Input.GetKeyDown(KeyCode.Space);
+        // 스페이스바를 누를 때 코루틴 시작
+        if (Input.GetKeyDown(KeyCode.Space) && jumpChargeCoroutine == null && isGrounded)
+        {
+            jumpChargeCoroutine = StartCoroutine(JumpChargeRoutine());
+            isJumped = true;
+        }
+        // 스페이스바를 떼면 코루틴 종료 및 점프 실행
+        else if (Input.GetKeyUp(KeyCode.Space) && jumpChargeCoroutine != null)
+        {
+            StopCoroutine(jumpChargeCoroutine);
+            jumpChargeCoroutine = null;
+            Jump(jumpChargeTime);
+            jumpChargeTime = 0f;
+        }
+
         stateMachine.Update();
     }
     private void FixedUpdate()
@@ -60,5 +80,30 @@ public class Player : MonoBehaviour
         {
             isGrounded = true;
         }
+    }
+
+    IEnumerator JumpChargeRoutine()
+    {
+        jumpChargeTime = 0f;
+        while (true)
+        {
+            jumpChargeTime += Time.deltaTime * 10;
+            yield return null;
+
+            if (Input.GetKeyUp(KeyCode.Space))
+            {
+                break;
+            }
+        }
+    }
+
+    void Jump(float chargeTime)
+    {
+        // 최소/최대 점프 힘으로 클램핑 (예: 누른 시간에 비례)
+        //float jumpForce = Mathf.Lerp(minJumpForce, maxJumpForce, Mathf.Clamp01(chargeTime));    // 점프 힘 계산
+        float jumpForce = Mathf.Clamp(jumpChargeTime, 3f, 20f);
+        rigid.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);    // 점프 힘 적용
+        isGrounded = false;
+        // 점프 애니메이션 실행 등 추가 가능
     }
 }
