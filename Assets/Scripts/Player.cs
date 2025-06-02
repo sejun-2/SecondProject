@@ -106,10 +106,10 @@ public class Player : MonoBehaviour
             jumpChargeTime += Time.deltaTime;
             yield return null;
 
-            if (Input.GetKeyUp(KeyCode.Space))
-            {
-                break;
-            }
+            //if (Input.GetKeyUp(KeyCode.Space))
+            //{
+            //    break;
+            //}
         }
     }
 
