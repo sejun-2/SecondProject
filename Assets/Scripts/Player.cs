@@ -13,7 +13,10 @@ public class Player : MonoBehaviour
     private Coroutine jumpChargeCoroutine;
     private float jumpChargeTime;
     private float minJumpForce = 5f;  // 최소 점프 힘
-    private float maxJumpForce = 20f; // 최대 점프 힘
+    private float maxJumpForce = 16f; // 최대 점프 힘
+
+    private float fallingGravityScale = 5f;
+    private float defaultGravityScale;
 
     public StateMachine stateMachine;
 
@@ -37,6 +40,8 @@ public class Player : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         cinemachine = virtualCam.GetCinemachineComponent<CinemachineFramingTransposer>();
         StateMachineInit();
+
+        defaultGravityScale = rigid.gravityScale;
     }
 
     private void StateMachineInit()
@@ -67,7 +72,18 @@ public class Player : MonoBehaviour
             jumpChargeTime = 0f;
         }
 
+        if (rigid.velocity.y < 0) // 하강 중
+        {
+            rigid.gravityScale = fallingGravityScale;
+        }
+        else // 상승 중
+        {
+            rigid.gravityScale = defaultGravityScale;
+        }
+
         stateMachine.Update();
+
+        
     }
     private void FixedUpdate()
     {
@@ -87,7 +103,7 @@ public class Player : MonoBehaviour
         jumpChargeTime = 0f;
         while (true)
         {
-            jumpChargeTime += Time.deltaTime * 10;
+            jumpChargeTime += Time.deltaTime;
             yield return null;
 
             if (Input.GetKeyUp(KeyCode.Space))
@@ -100,8 +116,9 @@ public class Player : MonoBehaviour
     void Jump(float chargeTime)
     {
         // 최소/최대 점프 힘으로 클램핑 (예: 누른 시간에 비례)
-        //float jumpForce = Mathf.Lerp(minJumpForce, maxJumpForce, Mathf.Clamp01(chargeTime));    // 점프 힘 계산
-        float jumpForce = Mathf.Clamp(jumpChargeTime, 3f, 20f);
+        float jumpForce = Mathf.Lerp(minJumpForce, maxJumpForce, Mathf.Clamp01(chargeTime));    // 점프 힘 계산
+        //float jumpForce = Mathf.Clamp(jumpChargeTime, 3f, 20f);
+
         rigid.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);    // 점프 힘 적용
         isGrounded = false;
         // 점프 애니메이션 실행 등 추가 가능
